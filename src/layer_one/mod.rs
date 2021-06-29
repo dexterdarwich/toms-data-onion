@@ -1,4 +1,6 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
+
+use crate::helpers;
 
 /*
 ==[ Layer 1/6: Bitwise Operations ]=========================
@@ -95,7 +97,13 @@ Here are some hints:
    need to mask it into a separate variable before doing the
    shift.
 */
-pub(crate) fn decode(_encoded: &str) -> Result<String> {
-    // TODO Decode layer one based on the instructions above
-    Ok("".to_string())
+pub(crate) fn decode(encoded: &str) -> Result<String> {
+    let flip_mask: u8 = 0x55; // 0h01010101
+    helpers::decode(encoded).and_then(|mut vec| {
+        vec.iter_mut().for_each(|byte| {
+            let flipped: u8 = *byte ^ flip_mask;
+            *byte = (flipped >> 1) | (((flipped) & 0x01) << 7);
+        });
+        String::from_utf8(vec).map_err(|e| anyhow!(e.to_string()))
+    })
 }

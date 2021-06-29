@@ -4,6 +4,7 @@ use helpers::get_layer_start_index;
 
 mod helpers;
 mod layer_one;
+mod layer_two;
 mod layer_zero;
 
 fn main() {
@@ -26,4 +27,10 @@ fn main() {
 
     println!("Content of layer 2:");
     println!("{}", layer_2);
+    let index_layer2: usize = get_layer_start_index(&*layer_2);
+    let layer_2_data = &layer_1[index_layer2..];
+    let layer_3 = layer_two::decode(&*layer_2_data).expect("Cannot decode layer one");
+
+    println!("Content of layer 3:");
+    println!("{}", layer_3);
 }

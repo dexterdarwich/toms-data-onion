@@ -43,7 +43,6 @@ bits, which is exactly 7 bytes.
 */
 pub(crate) fn decode(encoded: &str) -> Result<String> {
     let vec: Vec<u8> = helpers::decode(encoded)?;
-    let unfiltered_size = vec.len();
     let filtered: Vec<u8> = vec
         .into_iter()
         .filter(|byte| -> bool {
@@ -52,12 +51,8 @@ pub(crate) fn decode(encoded: &str) -> Result<String> {
             actual_parity == calculated_parity
         })
         .collect();
-    println!("Original size: {}", unfiltered_size);
-    println!("Filtered size: {}", filtered.len());
     let chunks: std::slice::Chunks<u8> = filtered.chunks(8);
     let mut combined: Vec<u8> = Vec::new();
-    let mut _value: u8 = 0;
-    println!("Chunks size: {}", chunks.len());
 
     for chunk in chunks {
         let mut byte_chunk: u64 = 0;

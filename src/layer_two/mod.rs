@@ -1,4 +1,8 @@
-use anyhow::Result;
+use std::u64;
+
+use anyhow::{anyhow, Result};
+
+use crate::helpers;
 
 /*
 ==[ Layer 2/6: Parity Bit ]=================================
@@ -37,6 +41,68 @@ of eight bytes contains 64 bits total, including 8 parity
 bits. Removing the 8 parity bits leaves behind 56 data
 bits, which is exactly 7 bytes.
 */
-pub(crate) fn decode(_encoded: &str) -> Result<String> {
-    Ok("".to_string())
+pub(crate) fn decode(encoded: &str) -> Result<String> {
+    let vec: Vec<u8> = helpers::decode(encoded)?;
+    let unfiltered_size = vec.len();
+    let filtered: Vec<u8> = vec
+        .into_iter()
+        .filter(|byte| -> bool {
+            let actual_parity: u8 = *byte & 0x01;
+            let calculated_parity: u8 = parity(*byte);
+            actual_parity == calculated_parity
+        })
+        .collect();
+    println!("Original size: {}", unfiltered_size);
+    println!("Filtered size: {}", filtered.len());
+    let chunks: std::slice::Chunks<u8> = filtered.chunks(8);
+    let mut combined: Vec<u8> = Vec::new();
+    let mut _value: u8 = 0;
+    println!("Chunks size: {}", chunks.len());
+
+    for chunk in chunks {
+        let mut byte_chunk: u64 = 0;
+        byte_chunk |= (chunk[0] >> 1) as u64;
+        byte_chunk = (byte_chunk << 7) | ((chunk[1] >> 1) as u64);
+        byte_chunk = (byte_chunk << 7) | ((chunk[2] >> 1) as u64);
+        byte_chunk = (byte_chunk << 7) | ((chunk[3] >> 1) as u64);
+        byte_chunk = (byte_chunk << 7) | ((chunk[4] >> 1) as u64);
+        byte_chunk = (byte_chunk << 7) | ((chunk[5] >> 1) as u64);
+        byte_chunk = (byte_chunk << 7) | ((chunk[6] >> 1) as u64);
+        byte_chunk = (byte_chunk << 7) | ((chunk[7] >> 1) as u64);
+
+        combined.push((byte_chunk >> 48) as u8);
+        combined.push((byte_chunk >> 40) as u8);
+        combined.push((byte_chunk >> 32) as u8);
+        combined.push((byte_chunk >> 24) as u8);
+        combined.push((byte_chunk >> 16) as u8);
+        combined.push((byte_chunk >> 8) as u8);
+        combined.push(byte_chunk as u8);
+    }
+
+    String::from_utf8(combined).map_err(|e| anyhow!(e.to_string()))
+}
+
+fn parity(byte: u8) -> u8 {
+    (((byte & 0x02) >> 1)          // 0b00000010
+        + ((byte & 0x04) >> 2)     // 0b00000100
+        + ((byte & 0x08) >> 3)     // 0b00001000
+        + ((byte & 0x10) >> 4)     // 0b00010000
+        + ((byte & 0x20) >> 5)     // 0b00100000
+        + ((byte & 0x40) >> 6)     // 0b01000000
+        + ((byte & 0x80) >> 7))    // 0b10000000
+        % 2
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::layer_two::parity;
+
+    #[test]
+    fn parity_test() {
+        assert_eq!(1, parity(0b01000001));
+        assert_eq!(1, parity(0b01010011));
+        assert_eq!(0, parity(0b00101001));
+        assert_eq!(0, parity(0b11101001));
+        assert_eq!(0, parity(0b00101111));
+    }
 }

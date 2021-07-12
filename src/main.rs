@@ -33,12 +33,12 @@ fn main() {
     let layer_3 = layer_two::decode(&*layer_2_data).expect("Cannot decode layer two");
 
     //println!("Content of layer 3:");
-    //println!("'{}'", layer_3);
+    //println!("{}", layer_3);
     //println!("Layer3 as bytes: {:?}", layer_3.as_bytes());
     let index_layer3: usize = get_layer_start_index(&*layer_3);
     let layer_3_data = &layer_3[index_layer3..];
     let layer_4 = layer_three::decode(&*layer_3_data).expect("Cannot decode layer three");
 
     println!("Content of layer 4:");
-    println!("'{}'", layer_4);
+    println!("{}", layer_4);
 }

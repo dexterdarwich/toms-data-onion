@@ -3,6 +3,7 @@ use std::fs;
 use helpers::get_layer_start_index;
 
 mod helpers;
+mod layer_four;
 mod layer_one;
 mod layer_three;
 mod layer_two;
@@ -39,6 +40,9 @@ fn main() {
     let layer_3_data = &layer_3[index_layer3..];
     let layer_4 = layer_three::decode(&*layer_3_data).expect("Cannot decode layer three");
 
-    println!("Content of layer 4:");
-    println!("{}", layer_4);
+    //println!("Content of layer 4:");
+    //println!("{}", layer_4);
+    let index_layer4 = get_layer_start_index(&*layer_4);
+    let layer_4_data = &layer_4[index_layer4..];
+    layer_four::decode(layer_4_data).expect("Cannot decode layer three");
 }
